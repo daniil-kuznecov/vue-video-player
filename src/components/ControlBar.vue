@@ -1,5 +1,5 @@
 <template>
-  <div class="control-block">
+  <div ref="control-block" class="control-block">
     <div class="play-control-buttons">
       <RewindBack @click="rewindVideoBackward" class="current-time-minus" />
       <Pause v-if="isVideoPlaying" @click="stopVideo" class="pause-button" />
@@ -13,7 +13,8 @@
       <div class="volume-control">
         <input type="range" v-model="volume" :max="1" :min="0" :step="0.01" @input="setVolume" class="slider" />
       </div>
-      <Expand @click="fullScreen" class="full-screen" />
+      <Shrink v-if="isFullScreen" @click="fullScreen" class="full-screen" />
+      <Expand v-else @click="fullScreen" />
     </div>
   </div>
 </template>
@@ -27,6 +28,7 @@
   import Volume2 from '/src/assets/icons/volume-2.svg'
   import VolumeOff from '/src/assets/icons/volume-off.svg'
   import Expand from '/src/assets/icons/expand.svg'
+  import Shrink from '/src/assets/icons/shrink.svg'
 
   export default {
     components: {
@@ -37,7 +39,8 @@
       Volume1,
       Volume2,
       VolumeOff,
-      Expand
+      Expand,
+      Shrink
     },
     data() {
       return {
@@ -63,17 +66,11 @@
         this.$parent.$refs['video-player'].currentTime -= 10
       },
       fullScreen() {
-        const video = this.$parent.$refs['video-player']
-        if (!this.isFullscreen) {
-          if (video.webkitRequestFullscreen) {
-            video.webkitRequestFullscreen()
-          }
-        } else {
-          if (document.webkitExitFullscreen) {
-            document.webkitExitFullscreen()
-          }
-        }
-        this.isFullscreen = !this.isFullscreen
+        const videoWrapper = this.$parent.$refs['video-wrapper']
+        const controlBlock = this.$refs['control-block']
+        this.isFullScreen = !this.isFullScreen
+        videoWrapper.classList.toggle('fullscreen')
+        controlBlock.classList.toggle('fullscreen')
       },
       setVolume() {
         this.$parent.$refs['video-player'].volume = this.volume
@@ -131,7 +128,34 @@
     align-items: center;
     justify-content: space-between;
     padding: 24px 18px;
-    z-index: 100 !important;
+    z-index: 5 !important;
+    background: white;
+  }
+
+  .control-block svg {
+    stroke: #000000;
+  }
+
+  .control-block.fullscreen {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    background: #000000;
+  }
+
+  .control-block.fullscreen .slider {
+    background: linear-gradient(to right, #e1e1e1 var(--gradient-stop), rgb(101, 101, 101) var(--gradient-stop));
+  }
+
+  .control-block.fullscreen .slider::-webkit-slider-thumb {
+    background: #e1e1e1;
+  }
+
+  .control-block.fullscreen svg,
+  .control-block.fullscreen svg path {
+    fill: #e1e1e1;
+    stroke: #e1e1e1;
   }
 
   .play-control-buttons {

@@ -13,7 +13,9 @@
           class="progress-bar"
         />
       </div>
-      <video ref="video-player" :muted="isMuted"></video>
+      <div ref="video-wrapper" class="video-wrapper">
+        <video ref="video-player" :muted="isMuted" />
+      </div>
     </div>
     <div class="available-video">
       <h3>Доступные видео</h3>
@@ -91,9 +93,9 @@
     border-radius: 12px;
     overflow: hidden;
     background-color: rgb(255, 255, 255);
-    border: 1px solid black;
     display: flex;
     flex-direction: column-reverse;
+    box-shadow: var(--box-shadow);
   }
 
   .player-wrapper {
@@ -142,5 +144,26 @@
     width: 15px;
     border-radius: 50%;
     background-color: red;
+  }
+
+  .video-wrapper {
+    z-index: 4;
+  }
+
+  .video-wrapper.fullscreen {
+    position: absolute;
+    width: 100vw;
+    left: 0;
+    top: 0;
+    background: black;
+    height: 100vh;
+  }
+
+  .video-wrapper.fullscreen video {
+    width: 100%;
+    height: auto;
+    transform: translateY(-50%);
+    position: absolute;
+    top: 50%;
   }
 </style>
