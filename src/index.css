@@ -2,7 +2,7 @@
   padding: 0;
   margin: 0;
   box-sizing: border-box;
-  font-family: 'PlayBold';
+  font-family: 'PlayRegular';
 }
 
 @font-face {
@@ -17,4 +17,8 @@
   src: url('./assets/fonts/Play-Regular.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
+}
+
+#app {
+  padding: 84px 64px 0px 64px;
 }

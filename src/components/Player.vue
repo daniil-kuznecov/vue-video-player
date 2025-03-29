@@ -1,41 +1,38 @@
 <template>
-  <div id="player">
-    <video ref="video-player" :muted="isMuted"></video>
-    <div class="volume-control">
-      <input type="range" v-model="volume" :max="1" :min="0" :step="0.01" @input="setVolume" class="slider" />
+  <div class="player-wrapper">
+    <div id="player">
+      <ControlBar />
+      <div class="progress-bar-container">
+        <input
+          type="range"
+          min="0"
+          :max="duration"
+          step="1"
+          v-model="currentTime"
+          @input="seekToTime"
+          class="progress-bar"
+        />
+      </div>
+      <video ref="video-player" :muted="isMuted"></video>
     </div>
-    <RotateL @click="changeCurrentTimeMinus" class="current-time-minus" />
-    <Pause v-if="isVideoPlaying" @click="stopVideo" class="pause-button" />
-    <Play v-else @click="playVideo" class="play-button" />
-    <RotateR @click="changeCurrentTimePlus" class="current-time-plus" />
-    <VolumeX v-if="volume === '0'" @click="muteVolume" class="mute-volume" />
-    <Volume1 v-else-if="volume < 0.51" />
-    <Volume2 v-else />
-    <Expand @click="fullScreen" class="full-screen" />
+    <div class="available-video">
+      <h3>Доступные видео</h3>
+      <div class="video-list">
+        <p>Видео #1</p>
+        <p>Видео #2</p>
+        <p>Видео #3</p>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
   import Hls from 'hls.js'
-  import RotateL from '/src/assets/icons/rotate-L.svg'
-  import Pause from '/src/assets/icons/pause.svg'
-  import Play from '/src/assets/icons/play.svg'
-  import RotateR from '/src/assets/icons/rotate-R.svg'
-  import Volume1 from '/src/assets/icons/volume-1.svg'
-  import Volume2 from '/src/assets/icons/volume-2.svg'
-  import VolumeX from '/src/assets/icons/volume-x.svg'
-  import Expand from '/src/assets/icons/expand.svg'
+  import ControlBar from './ControlBar.vue'
 
   export default {
     components: {
-      RotateL,
-      Pause,
-      Play,
-      RotateR,
-      Volume1,
-      Volume2,
-      VolumeX,
-      Expand
+      ControlBar
     },
     data() {
       return {
@@ -43,91 +40,107 @@
           'https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8',
         hls: null,
         isMuted: false,
-        isFullScreen: false,
-        volume: 0.5,
-        isVideoPlaying: false
+        currentTime: 0,
+        duration: 0
       }
     },
     methods: {
-      stopVideo() {
-        this.$refs['video-player'].pause()
-        this.isVideoPlaying = false
-      },
-      playVideo() {
-        this.$refs['video-player'].play()
-        this.isVideoPlaying = true
-      },
-      fastForwardVideo() {
-        this.$refs['video-player'].currentTime += 10
-      },
-      rewindVideo() {
-        this.$refs['video-player'].currentTime -= 10
-      },
-      muteVolume() {
-        this.isMuted = !this.isMuted
-      },
-      fullScreen() {
+      seekToTime() {
         const video = this.$refs['video-player']
-        if (!this.isFullscreen) {
-          if (video.webkitRequestFullscreen) {
-            video.webkitRequestFullscreen()
-          }
-        } else {
-          if (document.webkitExitFullscreen) {
-            document.webkitExitFullscreen()
-          }
-        }
-        this.isFullscreen = !this.isFullscreen
-      },
-      setVolume() {
-        this.$refs['video-player'].volume = this.volume
-        document.documentElement.style.setProperty('--gradient-stop', `${this.volume * 100}%`)
+        video.currentTime = this.currentTime
+        const perc = (this.currentTime * 100) / this.duration
+        document.documentElement.style.setProperty('--gradient-dur-stop', `${perc}%`)
       }
     },
     mounted() {
       if (Hls.isSupported()) {
         const video = this.$refs['video-player']
+        video.addEventListener('loadeddata', () => {
+          this.duration = this.$refs['video-player'].duration
+        })
+        video.addEventListener('timeupdate', () => {
+          this.currentTime = this.$refs['video-player'].currentTime
+          const perc = (this.currentTime * 100) / this.duration
+          document.documentElement.style.setProperty('--gradient-dur-stop', `${perc}%`)
+        })
         this.hls = new Hls()
         this.hls.loadSource(this.videoSrc)
         this.hls.attachMedia(video)
       }
+      this.videoPlayer = this.$refs.videoPlayer
     }
   }
 </script>
 
 <style>
   :root {
-    --gradient-stop: 50%;
+    --gradient-dur-stop: 0%;
   }
 
   video {
-    width: 1000px;
-  }
-  .pause-button,
-  .play-button,
-  .current-time-plus,
-  .current-time-minus,
-  .mute-volume,
-  .full-screen {
-    cursor: pointer;
+    width: 100%;
+    z-index: 1 !important;
   }
 
-  .slider {
+  video::-webkit-media-controls {
+    display: none !important;
+  }
+
+  #player {
+    width: 70%;
+    border-radius: 12px;
+    overflow: hidden;
+    background-color: rgb(255, 255, 255);
+    border: 1px solid black;
+    display: flex;
+    flex-direction: column-reverse;
+  }
+
+  .player-wrapper {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .available-video {
+    width: 20%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    justify-content: flex-start;
+    padding-top: 20px;
+  }
+
+  .video-list {
+    margin-top: 50px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .progress-bar-container {
+    width: 100%;
+    height: 10px;
+    position: relative;
+    z-index: 2;
+  }
+  .progress-bar {
+    width: 100%;
     border: none;
     outline: none;
     -webkit-appearance: none;
     appearance: none;
-    background: linear-gradient(to right, black var(--gradient-stop), rgb(178, 178, 178) var(--gradient-stop));
+    background: linear-gradient(to right, red var(--gradient-dur-stop), rgb(178, 178, 178) var(--gradient-dur-stop));
     height: 5px;
-    border-radius: 3px;
+    position: absolute;
   }
 
-  .slider::-webkit-slider-thumb {
+  .progress-bar::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
     height: 15px;
     width: 15px;
     border-radius: 50%;
-    background-color: black;
+    background-color: red;
   }
 </style>
