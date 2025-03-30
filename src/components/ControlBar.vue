@@ -73,41 +73,22 @@
         const perc = (this.currentTime * 100) / this.videoDuration
         document.documentElement.style.setProperty('--gradient-dur-stop', `${perc}%`)
       })
-      document.addEventListener('keydown', this.handleSpacebar)
-      document.addEventListener('keydown', this.handleArrowLeft)
-      document.addEventListener('keydown', this.handleArrowRight)
-      document.addEventListener('keydown', this.handleEscape)
+      document.addEventListener('keydown', this.handleKeyClick)
+      document.addEventListener('keydown', this.handleKeyClick)
+      document.addEventListener('keydown', this.handleKeyClick)
+      document.addEventListener('keydown', this.handleKeyClick)
     },
     methods: {
-      handleEscape(event) {
-        if (event.code === 'Escape') {
-          this.fullScreen()
-          event.preventDefault()
-        }
-      },
-      handleArrowLeft(event) {
-        if (event.code === 'ArrowLeft') {
-          this.rewindVideoBackward()
-          event.preventDefault()
-        }
-      },
-      handleArrowRight(event) {
-        if (event.code === 'ArrowRight') {
-          this.rewindVideoForward()
-          event.preventDefault()
-        }
-      },
-      handleSpacebar(event) {
-        if (event.code === 'Space') {
+      handleKeyClick(event) {
+        event.preventDefault()
+        if (event.code === 'Escape') this.fullScreen()
+        else if (event.code === 'ArrowLeft') this.rewindVideoBackward()
+        else if (event.code === 'ArrowRight') this.rewindVideoForward()
+        else if (event.code === 'Space') {
           const video = this.$parent.$refs['video-player']
-          if (video.paused) {
-            video.play()
-            this.isVideoPlaying = !this.isVideoPlaying
-          } else {
-            video.pause()
-            this.isVideoPlaying = !this.isVideoPlaying
-          }
-          event.preventDefault()
+          this.isVideoPlaying = !this.isVideoPlaying
+          if (video.paused) video.play()
+          else video.pause()
         }
       },
       seekToTime() {
