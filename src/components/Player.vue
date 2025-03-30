@@ -1,18 +1,7 @@
 <template>
   <div class="player-wrapper">
     <div id="player">
-      <ControlBar />
-      <div class="progress-bar-container">
-        <input
-          type="range"
-          min="0"
-          :max="duration"
-          step="1"
-          v-model="currentTime"
-          @input="seekToTime"
-          class="progress-bar"
-        />
-      </div>
+      <ControlBar :video-duration="duration" />
       <div ref="video-wrapper" class="video-wrapper">
         <video ref="video-player" :muted="isMuted" />
       </div>
@@ -42,28 +31,15 @@
           'https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8',
         hls: null,
         isMuted: false,
-        currentTime: 0,
         duration: 0
       }
     },
-    methods: {
-      seekToTime() {
-        const video = this.$refs['video-player']
-        video.currentTime = this.currentTime
-        const perc = (this.currentTime * 100) / this.duration
-        document.documentElement.style.setProperty('--gradient-dur-stop', `${perc}%`)
-      }
-    },
+    methods: {},
     mounted() {
       if (Hls.isSupported()) {
         const video = this.$refs['video-player']
         video.addEventListener('loadeddata', () => {
           this.duration = this.$refs['video-player'].duration
-        })
-        video.addEventListener('timeupdate', () => {
-          this.currentTime = this.$refs['video-player'].currentTime
-          const perc = (this.currentTime * 100) / this.duration
-          document.documentElement.style.setProperty('--gradient-dur-stop', `${perc}%`)
         })
         this.hls = new Hls()
         this.hls.loadSource(this.videoSrc)
@@ -75,10 +51,6 @@
 </script>
 
 <style>
-  :root {
-    --gradient-dur-stop: 0%;
-  }
-
   video {
     width: 100%;
     z-index: 1 !important;
@@ -118,32 +90,6 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
-  }
-
-  .progress-bar-container {
-    width: 100%;
-    height: 10px;
-    position: relative;
-    z-index: 2;
-  }
-  .progress-bar {
-    width: 100%;
-    border: none;
-    outline: none;
-    -webkit-appearance: none;
-    appearance: none;
-    background: linear-gradient(to right, red var(--gradient-dur-stop), rgb(178, 178, 178) var(--gradient-dur-stop));
-    height: 5px;
-    position: absolute;
-  }
-
-  .progress-bar::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    height: 15px;
-    width: 15px;
-    border-radius: 50%;
-    background-color: red;
   }
 
   .video-wrapper {

@@ -1,5 +1,14 @@
 <template>
   <div ref="control-block" class="control-block">
+    <input
+      type="range"
+      min="0"
+      :max="videoDuration"
+      step="1"
+      v-model="currentTime"
+      @input="seekToTime"
+      class="progress-bar"
+    />
     <div class="play-control-buttons">
       <RewindBack @click="rewindVideoBackward" class="current-time-minus" />
       <Pause v-if="isVideoPlaying" @click="stopVideo" class="pause-button" />
@@ -42,15 +51,36 @@
       Expand,
       Shrink
     },
+    props: {
+      videoDuration: {
+        type: Number,
+        required: true
+      }
+    },
     data() {
       return {
         isFullScreen: false,
         volume: 0.5,
         isVideoPlaying: false,
-        isMuted: false
+        isMuted: false,
+        currentTime: 0
       }
     },
+    mounted() {
+      const video = this.$parent.$refs['video-player']
+      video.addEventListener('timeupdate', () => {
+        this.currentTime = video.currentTime
+        const perc = (this.currentTime * 100) / this.videoDuration
+        document.documentElement.style.setProperty('--gradient-dur-stop', `${perc}%`)
+      })
+    },
     methods: {
+      seekToTime() {
+        const video = this.$parent.$refs['video-player']
+        video.currentTime = this.currentTime
+        const perc = (this.currentTime * 100) / this.videoDuration
+        document.documentElement.style.setProperty('--gradient-dur-stop', `${perc}%`)
+      },
       stopVideo() {
         this.$parent.$refs['video-player'].pause()
         this.isVideoPlaying = false
@@ -84,6 +114,7 @@
           this.volume = 0.5
           document.documentElement.style.setProperty('--gradient-stop', '50%')
         }
+        this.$parent.$refs['video-player'].volume = this.volume
       }
     }
   }
@@ -92,16 +123,7 @@
 <style>
   :root {
     --gradient-stop: 50%;
-  }
-
-  .pause-button,
-  .play-button,
-  .current-time-plus,
-  .current-time-minus,
-  .mute-volume,
-  .full-screen,
-  .volume-control-buttons {
-    cursor: pointer;
+    --gradient-dur-stop: 0%;
   }
 
   .slider {
@@ -130,10 +152,7 @@
     padding: 24px 18px;
     z-index: 5 !important;
     background: white;
-  }
-
-  .control-block svg {
-    stroke: #000000;
+    position: relative;
   }
 
   .control-block.fullscreen {
@@ -166,7 +185,33 @@
     gap: 16px;
   }
 
+  .play-control-buttons svg {
+    cursor: pointer;
+  }
+
   .volume-control {
     display: flex;
+  }
+
+  .progress-bar {
+    width: 100%;
+    border: none;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+    background: linear-gradient(to right, red var(--gradient-dur-stop), rgb(178, 178, 178) var(--gradient-dur-stop));
+    height: 5px;
+    position: absolute;
+    top: -5px;
+    left: 0;
+  }
+
+  .progress-bar::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 15px;
+    width: 15px;
+    border-radius: 50%;
+    background-color: red;
   }
 </style>
